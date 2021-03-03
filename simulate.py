@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from agent import *
+from body import *
+from environments import *
 
 class Simulation:
     def __init__(self, agent, body, environment):
@@ -161,3 +164,7 @@ def parameter_sweep(reward, cost, resolution, body_initializer, environment_init
         plt.tight_layout()
 
     return all_fitness, all_AUC
+
+if __name__ == '__main__':
+    parameter_sweep(.3, 1., 16, 'NullBody()', 'SwitchingSlotMachineEnvironment(.6, [100, 110])', {'extinction_end': 150}, plot=True)
+    plt.show()
