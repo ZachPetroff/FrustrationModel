@@ -166,5 +166,5 @@ def parameter_sweep(reward, cost, resolution, body_initializer, environment_init
     return all_fitness, all_AUC
 
 if __name__ == '__main__':
-    parameter_sweep(.3, 1., 16, 'NullBody()', 'environments.SwitchingSlotMachineEnvironment(.6, [100, 110])', {'extinction_end': 150}, plot=True)
+    parameter_sweep(.3, 1., 16, 'bodies.NullBody()', 'environments.SwitchingSlotMachineEnvironment(.6, [100, 110])', {'extinction_end': 150}, plot=True)
     plt.show()
