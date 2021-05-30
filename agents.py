@@ -16,7 +16,7 @@ class Agent:
         raise NotImplementedError
 
 class FrustrationModelAgent(Agent):
-    def __init__(self, reward, cost, expectation_growth, expectation_decay, temperature=0):
+    def __init__(self, reward, cost, expectation_growth, expectation_decay, temperature=.1):
         self.policy = np.zeros(2, dtype=np.float32) # preference of each available action
         self.expectation = np.zeros(2, dtype=np.float32) # subtracted from both reward and punishment
 
@@ -39,14 +39,14 @@ class FrustrationModelAgent(Agent):
 
     def update(self, action, reward_signal):
         if reward_signal > 0:
-            self.policy[action] += self.reward
+            self.policy[action] += self.reward * reward_signal
             self.policy[action] -= self.expectation[action]
             self.expectation[action] += self.expectation_growth
             if self.policy[action] < 0: self.policy[action] = 0
         else:
-            self.policy[action] -= self.cost
-            self.policy[action] += self.expectation[action]
-            self.expectation[action] -= self.expectation_decay
+            self.policy[action] -= self.cost 
+            self.policy[action] += self.expectation[action] 
+            self.expectation[action] -= self.expectation_decay 
             if self.expectation[action] < 0: self.expectation[action] = 0
             if self.policy[action] < 0: self.policy[action] = 0
-
+        
