@@ -9,7 +9,7 @@ import multiprocessing
 from itertools import repeat
 import time
     
-def four_D(resolution, body_initializer, environment_initializer, reward_vals = [.3], cost_vals = [1], growth_minmax=[0, 1], decay_minmax=[0, 1], switch_times=[200, 500], cont=True):
+def four_D(resolution, body_initializer, environment_initializer, reward_vals = [.3], cost_vals = [1], growth_minmax=[0, 1], decay_minmax=[0, 1], switch_times=[200, 500], cont=True, n=500):
     fitnesses = []
     AUCs = []
     actions = []
@@ -46,7 +46,7 @@ def four_D(resolution, body_initializer, environment_initializer, reward_vals = 
         r = reward[i]
         c = cost[i]
         with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-            results = pool.starmap(sweep, zip(exp_growth , exp_decay, repeat(r), repeat(c), repeat(body_initializer), repeat(environment_initializer)))
+            results = pool.starmap(sweep, zip(exp_growth , exp_decay, repeat(r), repeat(c), repeat(body_initializer), repeat(environment_initializer), repeat(n)))
         results = np.array(results)
         results = results.reshape((resolution, resolution))
         for k in range(resolution):
@@ -67,9 +67,9 @@ def four_D(resolution, body_initializer, environment_initializer, reward_vals = 
     
     return fitnesses, AUCs, actions, CIs, critmats
 
-def parameter_sweep(reward, cost, resolution, body_initializer, environment_initializer, simulation_kwargs={}, plot=False, switch_times=[200, 500], cont=True):
-    decay_vals = np.linspace(.25, 1, resolution)
-    growth_vals = np.linspace(0, .4, resolution)
+def parameter_sweep(reward, cost, resolution, body_initializer, environment_initializer, simulation_kwargs={}, plot=False, switch_times=[200, 500], cont=True, growth_minmax=[0, 1], decay_minmax=[0, 1], n=500):
+    decay_vals = np.linspace(decay_minmax[0], decay_minmax[1], resolution)
+    growth_vals = np.linspace(growth_minmax[0], growth_minmax[1], resolution)
     exp_decay = np.array([])
     exp_growth = np.array([])
     # get all combinations of expectation growth and decay
@@ -85,7 +85,7 @@ def parameter_sweep(reward, cost, resolution, body_initializer, environment_init
     tot_expectations_one = []
     tot_expectations_two = []
     with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-        results = pool.starmap(sweep, zip(exp_growth, exp_decay, repeat(reward), repeat(cost), repeat(body_initializer), repeat(environment_initializer)))
+        results = pool.starmap(sweep, zip(exp_growth, exp_decay, repeat(reward), repeat(cost), repeat(body_initializer), repeat(environment_initializer), repeat(n)))
     results = np.array(results)
     results = results.reshape((resolution, resolution))
     for i in range(resolution):
@@ -164,12 +164,12 @@ def parameter_sweep(reward, cost, resolution, body_initializer, environment_init
 
     return all_fitness, all_AUC, cis, tot_actions, tot_expectations_one, tot_expectations_two, crit_mat
 
-def sweep(g, d, reward, cost, body_init, env_init):
+def sweep(g, d, reward, cost, body_init, env_init, n):
     agent_initializer = f'''agents.FrustrationModelAgent(reward={reward}, cost={cost},
                             expectation_growth={g}, expectation_decay={d})'''
     body_initializer = body_init
     environment_initializer = env_init
-    fitness, AUC, ci, total_actions, total_expectations_one, total_expectations_two = simulate.simulate(agent_initializer, body_initializer, environment_initializer)
+    fitness, AUC, ci, total_actions, total_expectations_one, total_expectations_two = simulate.simulate(agent_initializer, body_initializer, environment_initializer, n=n)
     
     return {"fitness":fitness, "AUC":AUC, "ci":ci, "total_actions":total_actions, "total_expectations_one":total_expectations_one, "total_expectations_two":total_expectations_two}
 
@@ -215,19 +215,29 @@ def criteria_mat(actions, auc, res, cis, extinction_begin, extinction_end, cont=
         crit_mat[i] = crit
     return crit_mat.reshape((res*res, 3))
         
+
 if __name__ == '__main__':
-    # save output
-    save_data = True
-    # True = Perform 2-d Parameter Sweep
-    # False = Perform 4-d Parameter Sweep
-    two_d = True
+    save_data = True    # save output
+    two_d = False   # True = 2D Param Sweep | False = 4D Param Sweep
+    body = 'bodies.NullBody()'  # Body Initializer
+    env = 'environments.TrueExtinctionEnvironment(.9, [200, 500])'  # Environment Intializer
+    switch_times = [200, 500] 
+    cont = True     # True if criteria map is continuous
+    growth_minmax = [0, .4]     # Min and Max for growth values
+    decay_minmax = [.25, 1]     # Min and Max for decay values
+    res = 25    # Growth and Decay Resolution
+    n = 500     # Number of Simulations
     
-    ######## PARAMETER SWEEP ########
+    ######## 2D PARAMETER SWEEP ########
+    reward = .3
+    cost = 1
+
     if two_d:
         tic = time.perf_counter()
-        fit, auc, cis, total_actions, tot_expectations_one, tot_expectations_two, crit_mat = parameter_sweep(.3, 1, 25, 'bodies.NullBody()', 'environments.TrueExtinctionEnvironment(.9, [200, 500])', {'extinction_end': 500}, plot=False, switch_times = [200, 500], cont=True)
+        fit, auc, cis, total_actions, tot_expectations_one, tot_expectations_two, crit_mat = parameter_sweep(reward, cost, res, body, env, {'extinction_end': switch_times[1]}, plot=False, switch_times=switch_times, cont=cont, growth_minmax=growth_minmax, decay_minmax=decay_minmax, n=n)
         toc = time.perf_counter()
-        print("Parameter Sweep Time: " + str(toc - tic))
+        print("2-D Time: " + str(toc - tic))
+    
     ######## 4-DIMENSIONAL ANALYSIS ########
     '''
     The resolution for reward and cost will be decided by the length of the cost and reward values lists.
@@ -237,25 +247,10 @@ if __name__ == '__main__':
     # the Reward and Cost values you want to test
     reward_vals = [.1, 1.] 
     cost_vals = [.1, 1.] 
-    # Growth and Decay Resolution
-    resolution = 5
-    # body
-    body_initializer = 'bodies.NullBody()'
-    # environment
-    environment_initializer = 'environments.TrueExtinctionEnvironment(.9, [200, 500])'
-    # min and max values for expectation growth and decay
-    growth_minmax=[0, 1] 
-    decay_minmax=[0, 1] 
-    # [beginning of extinction, end of extinction]
-    switch_times=[200, 500] 
-    # whether the criteria matrix output will be continuous or binary
-    cont=True
-    
-    # each of the outputs are dictionarys
-    # if you want to view the fitnesses for reward = .1 and cost = 1, use fitnesses.get("reward=.1, cost=1")
+
     if not two_d:
         tic = time.perf_counter()
-        fitnesses, AUCs, actions, CIs, critmats = four_D(resolution, body_initializer, environment_initializer, reward_vals, cost_vals, growth_minmax, decay_minmax, switch_times, cont=cont)
+        fitnesses, AUCs, actions, CIs, critmats = four_D(res, body, env, reward_vals, cost_vals, growth_minmax, decay_minmax, switch_times, cont=cont, n=n)
         toc = time.perf_counter()
         print("4-D Time: " + str(toc - tic))
     ### SAVE DATA ###
@@ -264,7 +259,6 @@ if __name__ == '__main__':
         if two_d: 
             fit = pd.DataFrame(fit.flatten())
             auc = pd.DataFrame(auc.flatten())
-    
     
             fit.to_csv("fit.csv")
             auc.to_csv("AUC.csv")
