@@ -9,7 +9,7 @@ int main(int argc, char** argv)
     if(argc > 1)
         seed = atoi(argv[1]);
     NullBody body;
-    TrueExtinctionEnvironment environment(.7, 300, 400);
+    SwitchingSlotMachineEnvironment environment(.7, 300, 400);
     SimulationResult result;
     result.action_freq = new double[500];
     for(double reward = 0.; reward <= 1.; reward += .1)

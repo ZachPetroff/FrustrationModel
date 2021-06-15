@@ -32,4 +32,48 @@ public:
     double assign_reward(int action);
 };
 
+class SwitchingSlotMachineEnvironment : public Environment
+{
+    double m_original_threshold;
+    double m_action_0_threshold;
+    int m_time;
+    const int m_extinction_begin;
+    const int m_extinction_end;
+
+    pcg32 m_rand;
+
+public:
+    SwitchingSlotMachineEnvironment(double p, int extinction_begin,
+        int extinction_end);
+
+    ~SwitchingSlotMachineEnvironment();
+
+    void reset(int seed);
+
+    double assign_reward(int action);
+};
+
+class PerArmSlotMachineEnvironment : public Environment
+{
+    double m_original_threshold;
+    double m_action_0_threshold;
+    double m_switch_likelihood;
+    int m_time;
+    const int m_extinction_begin;
+    const int m_extinction_end;
+
+    pcg32 m_rand;
+    pcg32 m_rand_switch;
+
+public:
+    PerArmSlotMachineEnvironment(double p, double m_switch_likelihood,
+        int extinction_begin, int extinction_end);
+
+    ~PerArmSlotMachineEnvironment();
+
+    void reset(int seed);
+
+    double assign_reward(int action);
+};
+
 #endif // #ifndef ENVIRONMENTS_H

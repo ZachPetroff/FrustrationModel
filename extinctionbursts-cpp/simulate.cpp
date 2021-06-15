@@ -1,6 +1,6 @@
 #include "simulate.h"
 
-void simulate_single_run(int duration, int seed,
+static void simulate_single_run(int duration, int seed,
     Agent& agent, Body& body, Environment& environment,
     double* total_actions, double& total_fitness)
 {

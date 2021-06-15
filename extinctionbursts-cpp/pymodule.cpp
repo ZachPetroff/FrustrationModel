@@ -69,6 +69,55 @@ static PyObject* make_TrueExtinctionEnvironment(PyObject* self, PyObject* args)
     }
 }
 
+static PyObject* make_SwitchingSlotMachineEnvironment(PyObject* self, PyObject* args)
+{
+    double p;
+    int extinction_begin;
+    int extinction_end;
+
+    if (!PyArg_ParseTuple(args, "dii", &p, &extinction_begin, &extinction_end))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        SwitchingSlotMachineEnvironment* environment = new SwitchingSlotMachineEnvironment(p, extinction_begin, extinction_end);
+        return PyCapsule_New(environment, "environment", &destroy_Environment);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
+
+static PyObject* make_PerArmSlotMachineEnvironment(PyObject* self, PyObject* args)
+{
+    double p;
+    double switch_likelihood;
+    int extinction_begin;
+    int extinction_end;
+
+    if (!PyArg_ParseTuple(args, "ddii", &p, &switch_likelihood, &extinction_begin, &extinction_end))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        PerArmSlotMachineEnvironment* environment = new PerArmSlotMachineEnvironment(p, switch_likelihood, extinction_begin, extinction_end);
+        return PyCapsule_New(environment, "environment", &destroy_Environment);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
+
 void destroy_Body(PyObject* capsule)
 {
     Body* body = (Body*)PyCapsule_GetPointer(capsule, "body");
@@ -153,6 +202,8 @@ static PyObject* py_simulate(PyObject* self, PyObject* args)
 static PyMethodDef extinctionbursts_Methods[] = {
     {"FrustrationModelAgent", make_FrustrationModelAgent, METH_VARARGS, "Initialize a FrustrationModelAgent class."},
     {"TrueExtinctionEnvironment", make_TrueExtinctionEnvironment, METH_VARARGS, "Initialize a TrueExtinctionEnvironment class."},
+    {"SwitchingSlotMachineEnvironment", make_SwitchingSlotMachineEnvironment, METH_VARARGS, "Initialize a SwitchingSlotMachineEnvironment class."},
+    {"PerArmSlotMachineEnvironment", make_PerArmSlotMachineEnvironment, METH_VARARGS, "Initialize a PerArmSlotMachineEnvironment class."},
     {"NullBody", make_NullBody, METH_VARARGS, "Initialize a NullBody class."},
     {"simulate", py_simulate, METH_VARARGS, "Simulate the actions that <agent> takes with <body> in <environment> for <n> runs with duration <duration> and seed <seed>. Returns the agent's fitness and a numpy array of the actions it took."},
     {NULL, NULL, 0, NULL}

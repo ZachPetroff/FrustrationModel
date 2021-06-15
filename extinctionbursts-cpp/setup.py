@@ -24,7 +24,7 @@ setup(name = 'extinctionbursts', version='1.0', description='Aligns two graphs.'
 
 if LOCAL_INSTALL:
     import os, shutil
-    os.remove('../extinctionbursts-1.0.egg-info')
+    os.remove('../extinctionbursts-1.0-py3.9.egg-info')
     if not DO_NOT_DELETE_BUILD:
         shutil.rmtree('build')
     for filename in os.listdir('..'):
