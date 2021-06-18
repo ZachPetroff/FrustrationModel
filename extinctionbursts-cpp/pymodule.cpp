@@ -145,6 +145,51 @@ static PyObject* make_NullBody(PyObject* self, PyObject* args)
     }
 }
 
+static PyObject* make_InfoGainBody(PyObject* self, PyObject* args)
+{
+    int extinction_begin;
+
+    if (!PyArg_ParseTuple(args, "i", &extinction_begin))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        InfoGainBody* body = new InfoGainBody(extinction_begin);
+        return PyCapsule_New(body, "body", &destroy_Body);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
+
+
+static PyObject* make_NoisyBody(PyObject* self, PyObject* args)
+{
+    double switch_prob;
+
+    if (!PyArg_ParseTuple(args, "d", &switch_prob))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        NoisyBody* body = new NoisyBody(switch_prob);
+        return PyCapsule_New(body, "body", &destroy_Body);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
+
 static PyObject* py_simulate(PyObject* self, PyObject* args)
 {
     int n, duration, seed;
@@ -205,6 +250,8 @@ static PyMethodDef extinctionbursts_Methods[] = {
     {"SwitchingSlotMachineEnvironment", make_SwitchingSlotMachineEnvironment, METH_VARARGS, "Initialize a SwitchingSlotMachineEnvironment class."},
     {"PerArmSlotMachineEnvironment", make_PerArmSlotMachineEnvironment, METH_VARARGS, "Initialize a PerArmSlotMachineEnvironment class."},
     {"NullBody", make_NullBody, METH_VARARGS, "Initialize a NullBody class."},
+    {"InfoGainBody", make_InfoGainBody, METH_VARARGS, "Initialize an InfoGainBody class."},
+    {"NoisyBody", make_NoisyBody, METH_VARARGS, "Initialize a NoisyBody class."},
     {"simulate", py_simulate, METH_VARARGS, "Simulate the actions that <agent> takes with <body> in <environment> for <n> runs with duration <duration> and seed <seed>. Returns the agent's fitness and a numpy array of the actions it took."},
     {NULL, NULL, 0, NULL}
 };
