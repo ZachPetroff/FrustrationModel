@@ -39,4 +39,72 @@ public:
     void update(int action, double reward_signal);
 };
 
+class UncertaintyModelAgent : public Agent
+{
+    double m_fast_expectation[2];
+    double m_slow_expectation[2];
+
+    const double m_w_uncertainty;
+    const double m_fast_rate;
+    const double m_slow_rate;
+
+    const double m_exponent;
+
+    pcg32 m_rand;
+
+public:
+    UncertaintyModelAgent(double w_uncertainty,
+        double fast_lambda, double slow_lambda,
+        double temperature=1.);
+
+    ~UncertaintyModelAgent();
+
+    void reset(int seed);
+
+    inline double rate(int i)
+    {
+        const double err = m_fast_expectation[i] - m_slow_expectation[i];
+        return m_fast_expectation[i] + m_w_uncertainty*err*err;
+    }
+
+    int select_action();
+
+    void update(int action, double reward_signal);
+};
+
+class UncertaintyModelAgent2 : public Agent
+{
+    double m_reward_expectation[2];
+    double m_change_expectation[2];
+
+    const double m_w_uncertainty;
+    const double m_reward_rate;
+    const double m_change_rate;
+
+    const double m_exponent;
+
+    pcg32 m_rand;
+
+public:
+    UncertaintyModelAgent2(double w_uncertainty,
+        double reward_lambda, double change_lambda,
+        double temperature=1.);
+
+    ~UncertaintyModelAgent2();
+
+    void reset(int seed);
+
+    inline double rate(int i)
+    {
+        if(m_change_expectation[i] > 0)
+            return m_reward_expectation[i] + m_w_uncertainty*m_change_expectation[i];
+        else
+            return m_reward_expectation[i] - m_w_uncertainty*m_change_expectation[i];
+    }
+
+    int select_action();
+
+    void update(int action, double reward_signal);
+};
+
 #endif // #ifndef AGENTS_H

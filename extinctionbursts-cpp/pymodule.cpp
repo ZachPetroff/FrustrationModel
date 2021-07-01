@@ -38,6 +38,53 @@ static PyObject* make_FrustrationModelAgent(PyObject* self, PyObject* args)
     }
 }
 
+static PyObject* make_UncertaintyModelAgent(PyObject* self, PyObject* args)
+{
+    double w_uncertainty, fast_lambda, slow_lambda, temperature;
+
+    temperature = 1.0;
+
+    if (!PyArg_ParseTuple(args, "ddd|d", &w_uncertainty, &fast_lambda, &slow_lambda, &temperature))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        UncertaintyModelAgent* agent = new UncertaintyModelAgent(w_uncertainty, fast_lambda, slow_lambda, temperature);
+        return PyCapsule_New(agent, "agent", &destroy_Agent);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
+
+static PyObject* make_UncertaintyModelAgent2(PyObject* self, PyObject* args)
+{
+    double w_uncertainty, reward_lambda, change_lambda, temperature;
+
+    temperature = 1.0;
+
+    if (!PyArg_ParseTuple(args, "ddd|d", &w_uncertainty, &reward_lambda, &change_lambda, &temperature))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        UncertaintyModelAgent2* agent = new UncertaintyModelAgent2(w_uncertainty, reward_lambda, change_lambda, temperature);
+        return PyCapsule_New(agent, "agent", &destroy_Agent);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
 void destroy_Environment(PyObject* capsule)
 {
     Environment* environment = (Environment*)PyCapsule_GetPointer(capsule, "environment");
@@ -108,6 +155,51 @@ static PyObject* make_PerArmSlotMachineEnvironment(PyObject* self, PyObject* arg
     try
     {
         PerArmSlotMachineEnvironment* environment = new PerArmSlotMachineEnvironment(p, switch_likelihood, extinction_begin, extinction_end);
+        return PyCapsule_New(environment, "environment", &destroy_Environment);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
+
+static PyObject* make_DetMultiscaleEnvironment(PyObject* self, PyObject* args)
+{
+    double p;
+    int t_switch_short, t_return_short, t_switch_long, t_return_long;
+
+    if (!PyArg_ParseTuple(args, "diiii", &p, &t_switch_short, &t_return_short, &t_switch_long, &t_return_long))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        DetMultiscaleEnvironment* environment = new DetMultiscaleEnvironment(p, t_switch_short, t_return_short, t_switch_long, t_return_long);
+        return PyCapsule_New(environment, "environment", &destroy_Environment);
+    }
+    catch (std::bad_alloc& exception)
+    {
+        PyErr_SetString(PyExc_MemoryError,
+            "Could not allocate requested class in memory.");
+        return nullptr;
+    }
+}
+
+static PyObject* make_StochMultiscaleEnvironment(PyObject* self, PyObject* args)
+{
+    double p, p_switch_short, p_return_short, p_switch_long, p_return_long;
+
+    if (!PyArg_ParseTuple(args, "ddddd", &p, &p_switch_short, &p_return_short, &p_switch_long, &p_return_long))
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        StochMultiscaleEnvironment* environment = new StochMultiscaleEnvironment(p, p_switch_short, p_return_short, p_switch_long, p_return_long);
         return PyCapsule_New(environment, "environment", &destroy_Environment);
     }
     catch (std::bad_alloc& exception)
@@ -246,9 +338,13 @@ static PyObject* py_simulate(PyObject* self, PyObject* args)
 
 static PyMethodDef extinctionbursts_Methods[] = {
     {"FrustrationModelAgent", make_FrustrationModelAgent, METH_VARARGS, "Initialize a FrustrationModelAgent class."},
+    {"UncertaintyModelAgent", make_UncertaintyModelAgent, METH_VARARGS, "Initialize a UncertaintyModelAgent class."},
+    {"UncertaintyModelAgent2", make_UncertaintyModelAgent2, METH_VARARGS, "Initialize a UncertaintyModelAgent2 class."},
     {"TrueExtinctionEnvironment", make_TrueExtinctionEnvironment, METH_VARARGS, "Initialize a TrueExtinctionEnvironment class."},
     {"SwitchingSlotMachineEnvironment", make_SwitchingSlotMachineEnvironment, METH_VARARGS, "Initialize a SwitchingSlotMachineEnvironment class."},
     {"PerArmSlotMachineEnvironment", make_PerArmSlotMachineEnvironment, METH_VARARGS, "Initialize a PerArmSlotMachineEnvironment class."},
+    {"DetMultiscaleEnvironment", make_DetMultiscaleEnvironment, METH_VARARGS, "Initialize a DetMultiscaleEnvironment class."},
+    {"StochMultiscaleEnvironment", make_StochMultiscaleEnvironment, METH_VARARGS, "Initialize a StochMultiscaleEnvironment class."},
     {"NullBody", make_NullBody, METH_VARARGS, "Initialize a NullBody class."},
     {"InfoGainBody", make_InfoGainBody, METH_VARARGS, "Initialize an InfoGainBody class."},
     {"NoisyBody", make_NoisyBody, METH_VARARGS, "Initialize a NoisyBody class."},

@@ -76,4 +76,46 @@ public:
     double assign_reward(int action);
 };
 
+class DetMultiscaleEnvironment : public Environment
+{
+    const int m_t_switch_short, m_t_return_short, m_t_switch_long, m_t_return_long;
+    const int m_cycle_short, m_cycle_long;
+    bool m_switched_short = false;
+    bool m_switched_long = false;
+    int m_time = 0;
+
+    uint32_t m_action_0_threshold;
+
+    pcg32 m_rand;
+
+public:
+    DetMultiscaleEnvironment(double p, int t_switch_short, int t_return_short, int t_switch_long, int t_return_long);
+
+    ~DetMultiscaleEnvironment();
+
+    void reset(int seed);
+
+    double assign_reward(int action);
+};
+
+class StochMultiscaleEnvironment : public Environment
+{
+    const uint32_t m_switch_short_threshold, m_return_short_threshold, m_switch_long_threshold, m_return_long_threshold;
+    bool m_switched_short = false;
+    bool m_switched_long = false;
+
+    uint32_t m_action_0_threshold;
+
+    pcg32 m_rand;
+
+public:
+    StochMultiscaleEnvironment(double p, double p_switch_short, double p_return_short, double p_switch_long, double p_return_long);
+
+    ~StochMultiscaleEnvironment();
+
+    void reset(int seed);
+
+    double assign_reward(int action);
+};
+
 #endif // #ifndef ENVIRONMENTS_H

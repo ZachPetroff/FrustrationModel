@@ -116,3 +116,116 @@ double SwitchingSlotMachineEnvironment::assign_reward(int action)
 }
 
 
+// DetMultiscaleEnvironment Implementation
+DetMultiscaleEnvironment::DetMultiscaleEnvironment(double p, int t_switch_short,
+        int t_return_short, int t_switch_long, int t_return_long) :
+    m_action_0_threshold(uint32_t(p*(double)0x100000000)),
+    m_t_switch_short(t_switch_short),
+    m_t_return_short(t_return_short),
+    m_cycle_short(t_switch_short+t_return_short),
+    m_t_switch_long(t_switch_long),
+    m_t_return_long(t_return_long),
+    m_cycle_long(t_switch_long+t_return_long)
+    {}
+
+DetMultiscaleEnvironment::~DetMultiscaleEnvironment() {}
+
+void DetMultiscaleEnvironment::reset(int seed)
+{
+    m_rand = pcg32(seed);
+    if(m_switched_short ^ m_switched_long)
+        m_action_0_threshold = ~m_action_0_threshold;
+    m_time = 0;
+    m_switched_short = false;
+    m_switched_long = false;
+}
+
+double DetMultiscaleEnvironment::assign_reward(int action)
+{
+    m_time ++;
+    if(m_time % m_cycle_short == 0 || m_time % m_cycle_short == m_t_switch_short)
+    {
+        m_switched_short = !m_switched_short;
+        m_action_0_threshold = ~m_action_0_threshold;
+    }
+    if(m_time % m_cycle_long == 0 || m_time % m_cycle_long == m_t_switch_long)
+    {
+        m_switched_long = !m_switched_long;
+        m_action_0_threshold = ~m_action_0_threshold;
+    }
+    const bool is_action_1 = (action == 1);
+    const bool action_0_wins = (m_rand() < m_action_0_threshold);
+    if (action_0_wins ^ is_action_1)
+        return 1.;
+    else
+        return 0.;
+}
+
+
+// StochMultiscaleEnvironment Implementation
+StochMultiscaleEnvironment::StochMultiscaleEnvironment(double p,
+        double p_switch_short, double p_return_short, double p_switch_long,
+        double p_return_long) :
+    m_action_0_threshold(uint32_t(p*(double)0x100000000)),
+    m_switch_short_threshold(uint32_t(p_switch_short*(double)0x100000000)),
+    m_return_short_threshold(uint32_t(p_return_short*(double)0x100000000)),
+    m_switch_long_threshold(uint32_t(p_switch_long*(double)0x100000000)),
+    m_return_long_threshold(uint32_t(p_return_long*(double)0x100000000))
+    {}
+
+StochMultiscaleEnvironment::~StochMultiscaleEnvironment() {}
+
+void StochMultiscaleEnvironment::reset(int seed)
+{
+    m_rand = pcg32(seed);
+    if(m_switched_short ^ m_switched_long)
+        m_action_0_threshold = ~m_action_0_threshold;
+    m_switched_short = false;
+    m_switched_long = false;
+}
+
+double StochMultiscaleEnvironment::assign_reward(int action)
+{
+    if(m_switched_short)
+    {
+        if(m_rand() < m_return_short_threshold)
+        {
+            m_switched_short = false;
+            m_action_0_threshold = ~m_action_0_threshold;
+        }
+    }
+    else
+    {
+        if(m_rand() < m_switch_short_threshold)
+        {
+            m_switched_short = true;
+            m_action_0_threshold = ~m_action_0_threshold;
+        }
+    }
+
+    if(m_switched_long)
+    {
+        if(m_rand() < m_return_long_threshold)
+        {
+            m_switched_long = false;
+            m_action_0_threshold = ~m_action_0_threshold;
+        }
+    }
+    else
+    {
+        if(m_rand() < m_switch_long_threshold)
+        {
+            m_switched_long = true;
+            m_action_0_threshold = ~m_action_0_threshold;
+        }
+    }
+
+    const bool is_action_1 = (action == 1);
+    const bool action_0_wins = (m_rand() < m_action_0_threshold);
+    if (action_0_wins ^ is_action_1)
+        return 1.;
+    else
+        return 0.;
+}
+
+

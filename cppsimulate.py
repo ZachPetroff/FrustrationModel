@@ -43,6 +43,15 @@ def cpp_simulate(agent_initializer, body_initializer, environment_initializer, d
     return total_fitness, AUC, ci, action_probs
 
 if __name__ == '__main__':
-    f, AUC, ci, action_probs = cpp_simulate('FrustrationModelAgent(.3, .9, .1, .1)', 'NullBody()', 'TrueExtinctionEnvironment(.7, 300, 400)', 500, 300, 400, 500, True)
     import matplotlib.pyplot as plt
+    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(5, 2, 15, 1.)', 'NullBody()', 'TrueExtinctionEnvironment(.9, 50, 100)', 150, 50, 100, 5000, True)
     plt.show()
+    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent2(10, 1, 3, 1.)', 'NullBody()', 'TrueExtinctionEnvironment(.9, 50, 100)', 150, 50, 100, 5000, True)
+    plt.show()
+    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(5, 2, 15, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
+    plt.show()
+    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent2(10, 1, 5, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
+    plt.show()
+    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent2(0, 1, 5, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
+    plt.show()
+    # f, AUC, ci, action_probs = cpp_simulate('FrustrationModelAgent(.3, 1., .0, .0)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
