@@ -41,9 +41,6 @@ public:
 
 class UncertaintyModelAgent : public Agent
 {
-    double m_fast_expectation[2];
-    double m_slow_expectation[2];
-
     const double m_w_uncertainty;
     const double m_fast_rate;
     const double m_slow_rate;
@@ -53,6 +50,9 @@ class UncertaintyModelAgent : public Agent
     pcg32 m_rand;
 
 public:
+    double m_fast_expectation[2];
+    double m_slow_expectation[2];
+
     UncertaintyModelAgent(double w_uncertainty,
         double fast_lambda, double slow_lambda,
         double temperature=1.);
@@ -65,6 +65,13 @@ public:
     {
         const double err = m_fast_expectation[i] - m_slow_expectation[i];
         return m_fast_expectation[i] + m_w_uncertainty*err*err;
+
+        // err = (old - delta) - old = -delta;
+        // (old - delta) + uncertainty_weight*err*err;
+        // old - delta + w_uncertainty*delta**2
+        // w_uncertainty*delta**2 > delta?
+
+        // produce plots explaining when this produces a burst
     }
 
     int select_action();
@@ -74,9 +81,6 @@ public:
 
 class UncertaintyModelAgent2 : public Agent
 {
-    double m_reward_expectation[2];
-    double m_change_expectation[2];
-
     const double m_w_uncertainty;
     const double m_reward_rate;
     const double m_change_rate;
@@ -86,6 +90,9 @@ class UncertaintyModelAgent2 : public Agent
     pcg32 m_rand;
 
 public:
+    double m_reward_expectation[2];
+    double m_change_expectation[2];
+
     UncertaintyModelAgent2(double w_uncertainty,
         double reward_lambda, double change_lambda,
         double temperature=1.);

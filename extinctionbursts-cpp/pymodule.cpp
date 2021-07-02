@@ -321,8 +321,21 @@ static PyObject* py_simulate(PyObject* self, PyObject* args)
     npy_intp dim_out[1] = {(npy_intp)duration};
 
     PyObject* action_array = PyArray_SimpleNew(1, &dim_out[0], NPY_DOUBLE);
-    if (!action_array)
+    PyObject* slow_expectation_0_array = PyArray_SimpleNew(1, &dim_out[0], NPY_DOUBLE);
+    PyObject* slow_expectation_1_array = PyArray_SimpleNew(1, &dim_out[0], NPY_DOUBLE);
+    PyObject* fast_expectation_0_array = PyArray_SimpleNew(1, &dim_out[0], NPY_DOUBLE);
+    PyObject* fast_expectation_1_array = PyArray_SimpleNew(1, &dim_out[0], NPY_DOUBLE);
+
+    /// MEMORY ERROR
+
+    if (!action_array || !slow_expectation_0_array || !slow_expectation_1_array
+        || !fast_expectation_0_array || !fast_expectation_1_array)
     {
+        Py_XDECREF(action_array);
+        Py_XDECREF(slow_expectation_0_array);
+        Py_XDECREF(slow_expectation_1_array);
+        Py_XDECREF(fast_expectation_0_array);
+        Py_XDECREF(fast_expectation_1_array);
         PyErr_SetString(PyExc_MemoryError,
             "Could not allocate actions array in memory.");
         return nullptr;
@@ -330,10 +343,18 @@ static PyObject* py_simulate(PyObject* self, PyObject* args)
 
     SimulationResult result;
     result.action_freq = (double*)PyArray_DATA(action_array);
+    result.slow_expectation_0 = (double*)PyArray_DATA(slow_expectation_0_array);
+    result.slow_expectation_1 = (double*)PyArray_DATA(slow_expectation_1_array);
+    result.fast_expectation_0 = (double*)PyArray_DATA(fast_expectation_0_array);
+    result.fast_expectation_1 = (double*)PyArray_DATA(fast_expectation_1_array);
 
     simulate(n, duration, seed, *agent, *body, *environment, result);
 
-    return Py_BuildValue("(dN)", result.fitness, action_array);
+    return Py_BuildValue("(dNNNNN)", result.fitness, action_array,
+        slow_expectation_0_array,
+        slow_expectation_1_array,
+        fast_expectation_0_array,
+        fast_expectation_1_array);
 }
 
 static PyMethodDef extinctionbursts_Methods[] = {

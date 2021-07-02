@@ -7,7 +7,7 @@ def cpp_simulate(agent_initializer, body_initializer, environment_initializer, d
     body = eval(body_initializer)
     environment = eval(environment_initializer)
 
-    total_fitness, action_probs = simulate(n, dur, 42, agent, body, environment)
+    total_fitness, action_probs, slow_expectation_0_array, slow_expectation_1_array, fast_expectation_0_array, fast_expectation_1_array = simulate(n, dur, 42, agent, body, environment)
 
     total_actions = action_probs * n
 
@@ -35,23 +35,33 @@ def cpp_simulate(agent_initializer, body_initializer, environment_initializer, d
             plt.axvline(extinction_end, ls='--', color='lightgray')
         extinction_phase = ((np.arange(dur) > extinction_begin) & (np.arange(dur) < extinction_end) & (action_probs > action_at_switch))
         plt.fill_between(np.arange(dur), action_probs, action_at_switch, where=extinction_phase, facecolor='lightgray', interpolate=True)
-        plt.plot(action_probs)
+        plt.plot(action_probs, label="actions")
+        plt.plot(slow_expectation_0_array, alpha=0.5, label="slow 0")
+        plt.plot(fast_expectation_0_array, alpha=0.5, label="fast 0")
+        plt.plot(slow_expectation_1_array, alpha=0.5, label="slow 1")
+        plt.plot(fast_expectation_1_array, alpha=0.5, label="fast 1")
         plt.title(f'Reward: {total_fitness:.2f}, burst: {AUC:.2f}')
         plt.xlabel("Timestep")
         plt.ylabel("Proportion favored arm")
+        plt.legend()
 
     return total_fitness, AUC, ci, action_probs
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(5, 2, 15, 1.)', 'NullBody()', 'TrueExtinctionEnvironment(.9, 50, 100)', 150, 50, 100, 5000, True)
-    plt.show()
-    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent2(10, 1, 3, 1.)', 'NullBody()', 'TrueExtinctionEnvironment(.9, 50, 100)', 150, 50, 100, 5000, True)
-    plt.show()
-    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(5, 2, 15, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
-    plt.show()
-    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent2(10, 1, 5, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
-    plt.show()
-    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent2(0, 1, 5, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
+    # f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(8., 3, 15, 1.)', 'NullBody()', 'TrueExtinctionEnvironment(.9, 500, 1000)', 1500, 500, 1000, 5000, True)
+    # plt.show()
+    # f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(8., 3, 15, 1.)', 'NullBody()', 'TrueExtinctionEnvironment(.9, 500, 1000)', 1500, 500, 1000, 5000, True)
+    # plt.show()
+    # action_probs = cpp_simulate('FrustrationModelAgent(.25, .3, .01, .04)', 'NullBody()', 'TrueExtinctionEnvironment(.8, 100, 200)', 300, 100, 200, 5000, True)
+    # plt.show()
+
+    # f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(8., 3, 15, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
+    # plt.show()
+
+    f, AUC, ci, action_probs = cpp_simulate('UncertaintyModelAgent(8., 3, 8, 1.)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
     plt.show()
     # f, AUC, ci, action_probs = cpp_simulate('FrustrationModelAgent(.3, 1., .0, .0)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
+    # plt.show()
+    # f, AUC, ci, action_probs = cpp_simulate('FrustrationModelAgent(.25, .3, .01, .04)', 'NullBody()', 'DetMultiscaleEnvironment(.9, 20, 4, 100, 100)', 800, 300, 400, 500, True)
+    # plt.show()

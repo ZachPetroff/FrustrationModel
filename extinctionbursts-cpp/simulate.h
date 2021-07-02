@@ -8,6 +8,10 @@
 struct SimulationResult
 {
     double* action_freq;
+    double* slow_expectation_0;
+    double* fast_expectation_0;
+    double* slow_expectation_1;
+    double* fast_expectation_1;
     double fitness;
 };
 

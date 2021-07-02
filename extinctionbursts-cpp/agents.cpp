@@ -104,7 +104,13 @@ int UncertaintyModelAgent::select_action()
 void UncertaintyModelAgent::update(int action, double perceived_reward)
 {
     m_fast_expectation[action] += (perceived_reward-m_fast_expectation[action])*m_fast_rate;
-    m_slow_expectation[action] += (perceived_reward-m_slow_expectation[action])*m_slow_rate;
+    // assumes there are only two actions
+    // non-dominant arm expectation returns to 0.5, extremely slowly
+    m_fast_expectation[1-action] += (0.5-m_fast_expectation[1-action])*m_slow_rate*m_slow_rate;
+
+    // slow expectation now indexes fast expectation instead of reward
+    m_slow_expectation[0] += (m_fast_expectation[0]-m_slow_expectation[0])*m_slow_rate;
+    m_slow_expectation[1] += (m_fast_expectation[1]-m_slow_expectation[1])*m_slow_rate;
 }
 
 // UncertaintyModelAgent2 implementation
